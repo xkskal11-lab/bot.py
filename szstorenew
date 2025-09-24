@@ -1,0 +1,204 @@
+--// IRAQ HUB GUI كامل
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = Players.LocalPlayer
+
+-- ScreenGui
+local gui = Instance.new("ScreenGui")
+gui.Name = "IraqHubGui"
+gui.ResetOnSpawn = false
+gui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- زر IRAQHUB فوق
+local HubButton = Instance.new("TextButton")
+HubButton.Size = UDim2.new(0,150,0,40)
+HubButton.Position = UDim2.new(0.5,-75,0,5)
+HubButton.Text = "IRAQHUB"
+HubButton.TextColor3 = Color3.fromRGB(255,255,255)
+HubButton.BackgroundColor3 = Color3.fromRGB(150,0,0)
+HubButton.Font = Enum.Font.GothamBold
+HubButton.TextScaled = true
+HubButton.Parent = gui
+
+-- القائمة الرئيسية
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0,300,0,250)
+MainFrame.Position = UDim2.new(0.5,-150,0.1,20)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+MainFrame.Visible = false
+MainFrame.Parent = gui
+
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1,0,0,35)
+Title.Text = "SZ STORE IRAQ HUB🔥"
+Title.TextColor3 = Color3.fromRGB(255,100,100)
+Title.Font = Enum.Font.GothamBold
+Title.TextScaled = true
+Title.BackgroundTransparency = 1
+
+-- زر اغلاق X
+local Close = Instance.new("TextButton", MainFrame)
+Close.Size = UDim2.new(0,35,0,35)
+Close.Position = UDim2.new(1,-40,0,0)
+Close.Text = "X"
+Close.BackgroundColor3 = Color3.fromRGB(100,0,0)
+Close.TextColor3 = Color3.fromRGB(255,255,255)
+Close.Font = Enum.Font.GothamBold
+Close.TextScaled = true
+
+-- دالة زر رئيسي
+local function CreateMainBtn(txt,posY)
+    local b = Instance.new("TextButton",MainFrame)
+    b.Size = UDim2.new(1,-20,0,40)
+    b.Position = UDim2.new(0,10,0,posY)
+    b.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    b.Text = txt
+    b.TextColor3 = Color3.fromRGB(255,255,255)
+    b.Font = Enum.Font.GothamBold
+    b.TextScaled = true
+    return b
+end
+
+-- إشعار بالزاوية
+local function Notify(msg)
+    StarterGui:SetCore("SendNotification",{
+        Title = "IRAQ HUB",
+        Text = msg,
+        Duration = 3
+    })
+end
+
+-- مربعات مستقلة للأزرار
+local function CreateBox(name,posY)
+    local frame = Instance.new("Frame",gui)
+    frame.Size = UDim2.new(0,120,0,40)
+    frame.Position = UDim2.new(0,10,posY,0)
+    frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    frame.Visible = false
+    local btn = Instance.new("TextButton",frame)
+    btn.Size = UDim2.new(1,0,1,0)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.BackgroundColor3 = Color3.fromRGB(150,0,0)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextScaled = true
+    return frame,btn
+end
+
+-- إنشاء الأزرار الرئيسية
+local PartMain = CreateMainBtn("إضافة بارت:",50)
+local SpeedMain = CreateMainBtn("تعزيز اللاعب 🔥",100)
+local GodMain = CreateMainBtn("وضع الخلود",150)
+local EspMain = CreateMainBtn("كشف الأماكن",200)
+
+-- صناديق الأوامر
+local PartFrame,PartBtn = CreateBox("PART",0.3)
+local SpeedFrame,SpeedBtn = CreateBox("Speed",0.4)
+local GodFrame,GodBtn = CreateBox("تفعيل الخلود",0.5)
+local EspFrame,EspBtn = CreateBox("ESP Players",0.6)
+
+-- تفعيل القائمة
+HubButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+Close.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+end)
+
+-- نظام البارت
+local PartEnabled = false
+PartMain.MouseButton1Click:Connect(function()
+    PartFrame.Visible = not PartFrame.Visible
+    Notify("تم تشغيل زر البارت")
+end)
+PartBtn.MouseButton1Click:Connect(function()
+    PartEnabled = not PartEnabled
+    PartBtn.BackgroundColor3 = PartEnabled and Color3.fromRGB(0,180,0) or Color3.fromRGB(150,0,0)
+end)
+
+RunService.Heartbeat:Connect(function()
+    if PartEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LocalPlayer.Character.HumanoidRootPart
+        if not workspace:FindFirstChild("IraqHubPart") then
+            local p = Instance.new("Part",workspace)
+            p.Size = Vector3.new(6,1,6)
+            p.Anchored = true
+            p.Name = "IraqHubPart"
+        end
+        workspace.IraqHubPart.Position = root.Position - Vector3.new(0,3,0)
+    elseif workspace:FindFirstChild("IraqHubPart") then
+        workspace.IraqHubPart:Destroy()
+    end
+end)
+
+-- السرعة
+local SpeedEnabled = false
+local NormalSpeed = 16
+SpeedMain.MouseButton1Click:Connect(function()
+    SpeedFrame.Visible = not SpeedFrame.Visible
+    Notify("تم تشغيل زر السرعة")
+end)
+SpeedBtn.MouseButton1Click:Connect(function()
+    SpeedEnabled = not SpeedEnabled
+    SpeedBtn.BackgroundColor3 = SpeedEnabled and Color3.fromRGB(0,180,0) or Color3.fromRGB(150,0,0)
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = SpeedEnabled and 22 or NormalSpeed
+    end
+end)
+
+-- الخلود
+local GodEnabled = false
+GodMain.MouseButton1Click:Connect(function()
+    GodFrame.Visible = not GodFrame.Visible
+    Notify("تم تشغيل وضع الخلود")
+end)
+GodBtn.MouseButton1Click:Connect(function()
+    GodEnabled = not GodEnabled
+    GodBtn.BackgroundColor3 = GodEnabled and Color3.fromRGB(0,180,0) or Color3.fromRGB(150,0,0)
+end)
+
+RunService.Heartbeat:Connect(function()
+    if GodEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character.Humanoid.Health = LocalPlayer.Character.Humanoid.MaxHealth
+    end
+end)
+
+-- ESP
+local EspEnabled = false
+EspMain.MouseButton1Click:Connect(function()
+    EspFrame.Visible = not EspFrame.Visible
+    Notify("تم تشغيل كشف الأماكن")
+end)
+EspBtn.MouseButton1Click:Connect(function()
+    EspEnabled = not EspEnabled
+    EspBtn.BackgroundColor3 = EspEnabled and Color3.fromRGB(0,180,0) or Color3.fromRGB(150,0,0)
+end)
+
+RunService.Heartbeat:Connect(function()
+    if EspEnabled then
+        for _,plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                if not plr.Character.Head:FindFirstChild("ESP") then
+                    local billboard = Instance.new("BillboardGui",plr.Character.Head)
+                    billboard.Name = "ESP"
+                    billboard.Size = UDim2.new(0,100,0,20)
+                    billboard.AlwaysOnTop = true
+                    local text = Instance.new("TextLabel",billboard)
+                    text.Size = UDim2.new(1,0,1,0)
+                    text.BackgroundTransparency = 1
+                    text.Text = plr.Name -- الاسم الثاني
+                    text.TextColor3 = Color3.fromRGB(0,255,0)
+                    text.Font = Enum.Font.GothamBold
+                    text.TextScaled = true
+                end
+            end
+        end
+    else
+        for _,plr in pairs(Players:GetPlayers()) do
+            if plr.Character and plr.Character:FindFirstChild("Head") and plr.Character.Head:FindFirstChild("ESP") then
+                plr.Character.Head.ESP:Destroy()
+            end
+        end
+    end
+end)
