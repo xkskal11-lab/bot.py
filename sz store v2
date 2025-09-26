@@ -1,0 +1,336 @@
+--================= إعدادات أساسية =================--
+local player = game.Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+--================= واجهة رئيسية =================--
+local mainGui = Instance.new("ScreenGui")
+mainGui.Name = "IRAQHUB_GUI"
+mainGui.ResetOnSpawn = false
+mainGui.Parent = PlayerGui
+
+-- زر IRAQHUB أعلى الشاشة
+local hubBtn = Instance.new("TextButton")
+hubBtn.Size = UDim2.new(0,140,0,40)
+hubBtn.Position = UDim2.new(0.5,-70,0,10)
+hubBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+hubBtn.Text = "IRAQHUB"
+hubBtn.Font = Enum.Font.SourceSansBold
+hubBtn.TextSize = 20
+hubBtn.TextColor3 = Color3.fromRGB(255,255,255)
+hubBtn.Parent = mainGui
+
+-- قائمة اختيار V1 / V2 / ESP
+local selectFrame = Instance.new("Frame")
+selectFrame.Size = UDim2.new(0,220,0,250) -- 🔥 أكبر عشان يشمل زر ESP
+selectFrame.Position = UDim2.new(0.5,-110,0.5,-125)
+selectFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+selectFrame.BorderSizePixel = 0
+selectFrame.Active = true
+selectFrame.Draggable = true
+selectFrame.Visible = false
+selectFrame.Parent = mainGui
+
+local selectTitle = Instance.new("TextLabel")
+selectTitle.Size = UDim2.new(1,0,0,40)
+selectTitle.BackgroundTransparency = 1
+selectTitle.Text = "Select Version"
+selectTitle.Font = Enum.Font.SourceSansBold
+selectTitle.TextSize = 22
+selectTitle.TextColor3 = Color3.fromRGB(255,255,255)
+selectTitle.Parent = selectFrame
+
+-- زر V1
+local v1Btn = Instance.new("TextButton")
+v1Btn.Size = UDim2.new(0.8,0,0,40)
+v1Btn.Position = UDim2.new(0.1,0,0.3,0)
+v1Btn.Text = "SZ STORE V1"
+v1Btn.Font = Enum.Font.SourceSansBold
+v1Btn.TextSize = 20
+v1Btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+v1Btn.TextColor3 = Color3.fromRGB(255,255,255)
+v1Btn.Parent = selectFrame
+
+-- زر V2
+local v2Btn = Instance.new("TextButton")
+v2Btn.Size = UDim2.new(0.8,0,0,40)
+v2Btn.Position = UDim2.new(0.1,0,0.55,0)
+v2Btn.Text = "SZ STORE V2"
+v2Btn.Font = Enum.Font.SourceSansBold
+v2Btn.TextSize = 20
+v2Btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+v2Btn.TextColor3 = Color3.fromRGB(255,255,255)
+v2Btn.Parent = selectFrame
+
+-- زر ESP Player
+local espBtn = Instance.new("TextButton")
+espBtn.Size = UDim2.new(0.8,0,0,40)
+espBtn.Position = UDim2.new(0.1,0,0.8,0)
+espBtn.Text = "ESP Player"
+espBtn.Font = Enum.Font.SourceSansBold
+espBtn.TextSize = 20
+espBtn.BackgroundColor3 = Color3.fromRGB(0,255,0)
+espBtn.TextColor3 = Color3.fromRGB(255,255,255)
+espBtn.Parent = selectFrame
+
+-- زر فتح القائمة
+hubBtn.MouseButton1Click:Connect(function()
+	selectFrame.Visible = not selectFrame.Visible
+end)
+
+--================= وظيفة V1 =================--
+local function createV1()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "SZ_V1"
+	gui.ResetOnSpawn = false
+	gui.Parent = PlayerGui
+
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Size = UDim2.new(0,180,0,140)
+	mainFrame.Position = UDim2.new(0.4,0,0.4,0)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	mainFrame.BorderSizePixel = 0
+	mainFrame.Active = true
+	mainFrame.Draggable = true
+	mainFrame.Parent = gui
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1,0,0,30)
+	title.BackgroundTransparency = 1
+	title.Text = "SZ STORE V1"
+	title.Font = Enum.Font.SourceSansBold
+	title.TextSize = 22
+	title.TextColor3 = Color3.fromRGB(255,255,255)
+	title.Parent = mainFrame
+
+	local partBtn = Instance.new("TextButton")
+	partBtn.Size = UDim2.new(0.8,0,0,30)
+	partBtn.Position = UDim2.new(0.1,0,0.45,0)
+	partBtn.Text = "Part"
+	partBtn.Font = Enum.Font.SourceSansBold
+	partBtn.TextSize = 20
+	partBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	partBtn.TextColor3 = Color3.fromRGB(255,255,255)
+	partBtn.Parent = mainFrame
+
+	local progressBg = Instance.new("Frame")
+	progressBg.Size = UDim2.new(0.8,0,0,18)
+	progressBg.Position = UDim2.new(0.1,0,0.75,0)
+	progressBg.BackgroundColor3 = Color3.fromRGB(60,60,60)
+	progressBg.Visible = false
+	progressBg.Parent = mainFrame
+
+	local progressBar = Instance.new("Frame")
+	progressBar.Size = UDim2.new(0,0,1,0)
+	progressBar.BackgroundColor3 = Color3.fromRGB(0,255,0)
+	progressBar.BorderSizePixel = 0
+	progressBar.Parent = progressBg
+
+	local building = false
+	local tween
+	local liftPart
+	local followConn
+	local riseConn
+
+	local function resetUI()
+		partBtn.Text = "Part"
+		progressBg.Visible = false
+		progressBar.Size = UDim2.new(0,0,1,0)
+	end
+
+	local function stopBuilding()
+		building = false
+		if tween then tween:Cancel() end
+		if followConn then followConn:Disconnect() end
+		if riseConn then riseConn:Disconnect() end
+		if liftPart then liftPart:Destroy() end
+		resetUI()
+	end
+
+	partBtn.MouseButton1Click:Connect(function()
+		if not building then
+			building = true
+			partBtn.Text = "جاري البناء..."
+			progressBg.Visible = true
+
+			local char = player.Character or player.CharacterAdded:Wait()
+			local root = char:WaitForChild("HumanoidRootPart")
+			local humanoid = char:WaitForChild("Humanoid")
+
+			liftPart = Instance.new("Part")
+			liftPart.Size = Vector3.new(6,1,6)
+			liftPart.Anchored = true
+			liftPart.Color = Color3.fromRGB(100,255,100)
+			liftPart.Name = "LiftPart"
+			liftPart.Parent = workspace
+
+			followConn = RunService.Heartbeat:Connect(function()
+				if root and liftPart then
+					local footY = root.Position.Y - humanoid.HipHeight - (root.Size.Y/2) + 0.5
+					liftPart.Position = Vector3.new(root.Position.X, footY, root.Position.Z)
+				end
+			end)
+
+			local speed = 0.8
+			riseConn = RunService.Heartbeat:Connect(function(dt)
+				if liftPart and building then
+					liftPart.Position += Vector3.new(0, dt*speed, 0)
+				end
+			end)
+
+			local info = TweenInfo.new(3, Enum.EasingStyle.Linear)
+			local goal = {Size = UDim2.new(1,0,1,0)}
+			tween = TweenService:Create(progressBar, info, goal)
+			tween:Play()
+
+			tween.Completed:Connect(function(state)
+				if state == Enum.PlaybackState.Completed and building then
+					stopBuilding()
+					partBtn.Text = "تم البناء!"
+					task.delay(2, resetUI)
+				end
+			end)
+		else
+			stopBuilding()
+		end
+	end)
+end
+
+--================= وظيفة V2 =================--
+local function createV2()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "SZ_V2"
+	gui.ResetOnSpawn = false
+	gui.Parent = PlayerGui
+
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Size = UDim2.new(0,180,0,140)
+	mainFrame.Position = UDim2.new(0.4,0,0.4,0)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	mainFrame.BorderSizePixel = 0
+	mainFrame.Active = true
+	mainFrame.Draggable = true
+	mainFrame.Parent = gui
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1,0,0,30)
+	title.BackgroundTransparency = 1
+	title.Text = "SZ STORE V2"
+	title.Font = Enum.Font.SourceSansBold
+	title.TextSize = 22
+	title.TextColor3 = Color3.fromRGB(255,255,255)
+	title.Parent = mainFrame
+
+	local partBtn = Instance.new("TextButton")
+	partBtn.Size = UDim2.new(0.8,0,0,30)
+	partBtn.Position = UDim2.new(0.1,0,0.45,0)
+	partBtn.Text = "Part"
+	partBtn.Font = Enum.Font.SourceSansBold
+	partBtn.TextSize = 20
+	partBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+	partBtn.TextColor3 = Color3.fromRGB(255,255,255)
+	partBtn.Parent = mainFrame
+
+	local building = false
+	local liftPart
+	local followConn
+	local riseConn
+
+	local function stopBuilding()
+		building = false
+		if followConn then followConn:Disconnect() end
+		if riseConn then riseConn:Disconnect() end
+		if liftPart then liftPart:Destroy() end
+		partBtn.Text = "Part"
+	end
+
+	partBtn.MouseButton1Click:Connect(function()
+		if not building then
+			building = true
+			partBtn.Text = "جاري البناء..."
+
+			local char = player.Character or player.CharacterAdded:Wait()
+			local root = char:WaitForChild("HumanoidRootPart")
+			local humanoid = char:WaitForChild("Humanoid")
+
+			liftPart = Instance.new("Part")
+			liftPart.Size = Vector3.new(6,1,6)
+			liftPart.Anchored = true
+			liftPart.Color = Color3.fromRGB(100,255,100)
+			liftPart.Name = "LiftPart"
+			liftPart.Parent = workspace
+
+			followConn = RunService.Heartbeat:Connect(function()
+				if root and liftPart then
+					local footY = root.Position.Y - humanoid.HipHeight - (root.Size.Y/2) + 0.5
+					liftPart.Position = Vector3.new(root.Position.X, footY, root.Position.Z)
+				end
+			end)
+
+			local speed = 0.8
+			riseConn = RunService.Heartbeat:Connect(function(dt)
+				if liftPart and building then
+					liftPart.Position += Vector3.new(0, dt*speed, 0)
+				end
+			end)
+		else
+			stopBuilding()
+		end
+	end)
+end
+
+--================= زر ESP Player =================--
+local function addESPToCharacter(char, name)
+	-- Highlight أخضر
+	local hl = Instance.new("Highlight")
+	hl.FillColor = Color3.fromRGB(0,255,0)
+	hl.OutlineColor = Color3.fromRGB(0,255,0)
+	hl.FillTransparency = 0.7
+	hl.OutlineTransparency = 0
+	hl.Adornee = char
+	hl.Parent = char
+
+	-- BillboardGui للاسم
+	local billboard = Instance.new("BillboardGui")
+	billboard.Size = UDim2.new(0,100,0,20)
+	billboard.AlwaysOnTop = true
+	billboard.Adornee = char:WaitForChild("Head")
+	billboard.Parent = char
+
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Size = UDim2.new(1,0,1,0)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Text = name
+	nameLabel.TextColor3 = Color3.fromRGB(0,255,0)
+	nameLabel.Font = Enum.Font.SourceSansBold
+	nameLabel.TextScaled = true
+	nameLabel.Parent = billboard
+end
+
+local function enableESP()
+	-- اللاعبين الحاليين
+	for _,plr in pairs(game.Players:GetPlayers()) do
+		if plr ~= player and plr.Character then
+			addESPToCharacter(plr.Character, plr.Name)
+		end
+		plr.CharacterAdded:Connect(function(char)
+			addESPToCharacter(char, plr.Name)
+		end)
+	end
+
+	-- لاعبين جدد
+	game.Players.PlayerAdded:Connect(function(plr)
+		plr.CharacterAdded:Connect(function(char)
+			addESPToCharacter(char, plr.Name)
+		end)
+	end)
+end
+
+--================= ربط الأزرار =================--
+v1Btn.MouseButton1Click:Connect(createV1)
+v2Btn.MouseButton1Click:Connect(createV2)
+espBtn.MouseButton1Click:Connect(function()
+	enableESP()
+	espBtn:Destroy() -- 🔥 حذف زر الكشف نهائياً بعد التفعيل
+end)
