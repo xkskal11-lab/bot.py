@@ -3,6 +3,7 @@ local player = game.Players.LocalPlayer
 local PlayerGui = player:WaitForChild("PlayerGui")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 --================= واجهة رئيسية =================--
 local mainGui = Instance.new("ScreenGui")
@@ -21,10 +22,10 @@ hubBtn.TextSize = 20
 hubBtn.TextColor3 = Color3.fromRGB(255,255,255)
 hubBtn.Parent = mainGui
 
--- قائمة اختيار V1 / V2 / ESP
+-- قائمة اختيار
 local selectFrame = Instance.new("Frame")
-selectFrame.Size = UDim2.new(0,220,0,250) -- 🔥 أكبر عشان يشمل زر ESP
-selectFrame.Position = UDim2.new(0.5,-110,0.5,-125)
+selectFrame.Size = UDim2.new(0,220,0,320) -- زدت الارتفاع
+selectFrame.Position = UDim2.new(0.5,-110,0.5,-160)
 selectFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
 selectFrame.BorderSizePixel = 0
 selectFrame.Active = true
@@ -41,45 +42,11 @@ selectTitle.TextSize = 22
 selectTitle.TextColor3 = Color3.fromRGB(255,255,255)
 selectTitle.Parent = selectFrame
 
--- زر V1
-local v1Btn = Instance.new("TextButton")
-v1Btn.Size = UDim2.new(0.8,0,0,40)
-v1Btn.Position = UDim2.new(0.1,0,0.3,0)
-v1Btn.Text = "SZ STORE V1"
-v1Btn.Font = Enum.Font.SourceSansBold
-v1Btn.TextSize = 20
-v1Btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-v1Btn.TextColor3 = Color3.fromRGB(255,255,255)
-v1Btn.Parent = selectFrame
-
--- زر V2
-local v2Btn = Instance.new("TextButton")
-v2Btn.Size = UDim2.new(0.8,0,0,40)
-v2Btn.Position = UDim2.new(0.1,0,0.55,0)
-v2Btn.Text = "SZ STORE V2"
-v2Btn.Font = Enum.Font.SourceSansBold
-v2Btn.TextSize = 20
-v2Btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-v2Btn.TextColor3 = Color3.fromRGB(255,255,255)
-v2Btn.Parent = selectFrame
-
--- زر ESP Player
-local espBtn = Instance.new("TextButton")
-espBtn.Size = UDim2.new(0.8,0,0,40)
-espBtn.Position = UDim2.new(0.1,0,0.8,0)
-espBtn.Text = "ESP Player"
-espBtn.Font = Enum.Font.SourceSansBold
-espBtn.TextSize = 20
-espBtn.BackgroundColor3 = Color3.fromRGB(0,255,0)
-espBtn.TextColor3 = Color3.fromRGB(255,255,255)
-espBtn.Parent = selectFrame
-
--- زر فتح القائمة
 hubBtn.MouseButton1Click:Connect(function()
 	selectFrame.Visible = not selectFrame.Visible
 end)
 
---================= وظيفة V1 =================--
+--================= زر V1 =================--
 local function createV1()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "SZ_V1"
@@ -114,45 +81,23 @@ local function createV1()
 	partBtn.TextColor3 = Color3.fromRGB(255,255,255)
 	partBtn.Parent = mainFrame
 
-	local progressBg = Instance.new("Frame")
-	progressBg.Size = UDim2.new(0.8,0,0,18)
-	progressBg.Position = UDim2.new(0.1,0,0.75,0)
-	progressBg.BackgroundColor3 = Color3.fromRGB(60,60,60)
-	progressBg.Visible = false
-	progressBg.Parent = mainFrame
-
-	local progressBar = Instance.new("Frame")
-	progressBar.Size = UDim2.new(0,0,1,0)
-	progressBar.BackgroundColor3 = Color3.fromRGB(0,255,0)
-	progressBar.BorderSizePixel = 0
-	progressBar.Parent = progressBg
-
 	local building = false
-	local tween
 	local liftPart
 	local followConn
 	local riseConn
 
-	local function resetUI()
-		partBtn.Text = "Part"
-		progressBg.Visible = false
-		progressBar.Size = UDim2.new(0,0,1,0)
-	end
-
 	local function stopBuilding()
 		building = false
-		if tween then tween:Cancel() end
 		if followConn then followConn:Disconnect() end
 		if riseConn then riseConn:Disconnect() end
 		if liftPart then liftPart:Destroy() end
-		resetUI()
+		partBtn.Text = "Part"
 	end
 
 	partBtn.MouseButton1Click:Connect(function()
 		if not building then
 			building = true
 			partBtn.Text = "جاري البناء..."
-			progressBg.Visible = true
 
 			local char = player.Character or player.CharacterAdded:Wait()
 			local root = char:WaitForChild("HumanoidRootPart")
@@ -162,7 +107,6 @@ local function createV1()
 			liftPart.Size = Vector3.new(6,1,6)
 			liftPart.Anchored = true
 			liftPart.Color = Color3.fromRGB(100,255,100)
-			liftPart.Name = "LiftPart"
 			liftPart.Parent = workspace
 
 			followConn = RunService.Heartbeat:Connect(function()
@@ -178,26 +122,13 @@ local function createV1()
 					liftPart.Position += Vector3.new(0, dt*speed, 0)
 				end
 			end)
-
-			local info = TweenInfo.new(3, Enum.EasingStyle.Linear)
-			local goal = {Size = UDim2.new(1,0,1,0)}
-			tween = TweenService:Create(progressBar, info, goal)
-			tween:Play()
-
-			tween.Completed:Connect(function(state)
-				if state == Enum.PlaybackState.Completed and building then
-					stopBuilding()
-					partBtn.Text = "تم البناء!"
-					task.delay(2, resetUI)
-				end
-			end)
 		else
 			stopBuilding()
 		end
 	end)
 end
 
---================= وظيفة V2 =================--
+--================= زر V2 =================--
 local function createV2()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "SZ_V2"
@@ -258,7 +189,6 @@ local function createV2()
 			liftPart.Size = Vector3.new(6,1,6)
 			liftPart.Anchored = true
 			liftPart.Color = Color3.fromRGB(100,255,100)
-			liftPart.Name = "LiftPart"
 			liftPart.Parent = workspace
 
 			followConn = RunService.Heartbeat:Connect(function()
@@ -280,9 +210,8 @@ local function createV2()
 	end)
 end
 
---================= زر ESP Player =================--
+--================= ESP Player =================--
 local function addESPToCharacter(char, name)
-	-- Highlight أخضر
 	local hl = Instance.new("Highlight")
 	hl.FillColor = Color3.fromRGB(0,255,0)
 	hl.OutlineColor = Color3.fromRGB(0,255,0)
@@ -291,7 +220,6 @@ local function addESPToCharacter(char, name)
 	hl.Adornee = char
 	hl.Parent = char
 
-	-- BillboardGui للاسم
 	local billboard = Instance.new("BillboardGui")
 	billboard.Size = UDim2.new(0,100,0,20)
 	billboard.AlwaysOnTop = true
@@ -309,7 +237,6 @@ local function addESPToCharacter(char, name)
 end
 
 local function enableESP()
-	-- اللاعبين الحاليين
 	for _,plr in pairs(game.Players:GetPlayers()) do
 		if plr ~= player and plr.Character then
 			addESPToCharacter(plr.Character, plr.Name)
@@ -318,8 +245,6 @@ local function enableESP()
 			addESPToCharacter(char, plr.Name)
 		end)
 	end
-
-	-- لاعبين جدد
 	game.Players.PlayerAdded:Connect(function(plr)
 		plr.CharacterAdded:Connect(function(char)
 			addESPToCharacter(char, plr.Name)
@@ -327,10 +252,164 @@ local function enableESP()
 	end)
 end
 
+--================= Float Window =================--
+local function createFloatGUI()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "FloatSZ"
+	gui.ResetOnSpawn = false
+	gui.Parent = PlayerGui
+
+	local mainFrame = Instance.new("Frame")
+	mainFrame.Size = UDim2.new(0,160,0,100)
+	mainFrame.Position = UDim2.new(0.5,-80,0.1,0)
+	mainFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	mainFrame.BorderSizePixel = 0
+	mainFrame.Active = true
+	mainFrame.Draggable = true
+	mainFrame.Parent = gui
+
+	local title = Instance.new("TextLabel")
+	title.Size = UDim2.new(1,0,0,30)
+	title.BackgroundTransparency = 1
+	title.Text = "SZ STORE FLOAT"
+	title.Font = Enum.Font.SourceSansBold
+	title.TextSize = 20
+	title.TextColor3 = Color3.fromRGB(255,255,255)
+	title.Parent = mainFrame
+
+	local floatBtn = Instance.new("TextButton")
+	floatBtn.Size = UDim2.new(0.8,0,0,40)
+	floatBtn.Position = UDim2.new(0.1,0,0.45,0)
+	floatBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+	floatBtn.TextColor3 = Color3.fromRGB(255,255,255)
+	floatBtn.Font = Enum.Font.SourceSansBold
+	floatBtn.TextSize = 18
+	floatBtn.Text = "Float"
+	floatBtn.Parent = mainFrame
+
+	local floatActive = false
+	local floatConn
+	local boostedSpeed = 60
+	local normalSpeed = 16
+
+	local function toggleFloat()
+		floatActive = not floatActive
+		local char = player.Character or player.CharacterAdded:Wait()
+		local root = char:WaitForChild("HumanoidRootPart")
+		local humanoid = char:WaitForChild("Humanoid")
+
+		if floatActive then
+			floatBtn.BackgroundColor3 = Color3.fromRGB(0,255,0)
+			workspace.Gravity = 0
+			humanoid.WalkSpeed = boostedSpeed
+			floatConn = RunService.Heartbeat:Connect(function()
+				root.Velocity = Vector3.new(root.Velocity.X, 0, root.Velocity.Z)
+			end)
+		else
+			floatBtn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+			workspace.Gravity = 196.2
+			humanoid.WalkSpeed = normalSpeed
+			if floatConn then floatConn:Disconnect() end
+		end
+	end
+
+	floatBtn.MouseButton1Click:Connect(toggleFloat)
+end
+
+--================= Infinite Jump =================--
+local infiniteJumpActive = false
+
+local function enableInfiniteJump()
+	infiniteJumpActive = true
+	UserInputService.JumpRequest:Connect(function()
+		if infiniteJumpActive then
+			local char = player.Character
+			if char then
+				local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+				if humanoid then
+					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+				end
+			end
+		end
+	end)
+
+	RunService.Heartbeat:Connect(function()
+		if infiniteJumpActive then
+			local char = player.Character
+			if char then
+				local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+				if humanoid and humanoid.Health < humanoid.MaxHealth then
+					-- 🔒 يمنع ضرر السقوط
+					humanoid.Health = humanoid.MaxHealth
+				end
+			end
+		end
+	end)
+end
+
+--================= إنشاء أزرار =================--
+local v1Btn = Instance.new("TextButton")
+v1Btn.Size = UDim2.new(0.8,0,0,40)
+v1Btn.Position = UDim2.new(0.1,0,0.25,0)
+v1Btn.Text = "SZ STORE V1"
+v1Btn.Font = Enum.Font.SourceSansBold
+v1Btn.TextSize = 20
+v1Btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+v1Btn.TextColor3 = Color3.fromRGB(255,255,255)
+v1Btn.Parent = selectFrame
+
+local v2Btn = Instance.new("TextButton")
+v2Btn.Size = UDim2.new(0.8,0,0,40)
+v2Btn.Position = UDim2.new(0.1,0,0.42,0)
+v2Btn.Text = "SZ STORE V2"
+v2Btn.Font = Enum.Font.SourceSansBold
+v2Btn.TextSize = 20
+v2Btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
+v2Btn.TextColor3 = Color3.fromRGB(255,255,255)
+v2Btn.Parent = selectFrame
+
+local espBtn = Instance.new("TextButton")
+espBtn.Size = UDim2.new(0.8,0,0,40)
+espBtn.Position = UDim2.new(0.1,0,0.59,0)
+espBtn.Text = "ESP Player"
+espBtn.Font = Enum.Font.SourceSansBold
+espBtn.TextSize = 20
+espBtn.BackgroundColor3 = Color3.fromRGB(0,255,0)
+espBtn.TextColor3 = Color3.fromRGB(255,255,255)
+espBtn.Parent = selectFrame
+
+local floatBtnMain = Instance.new("TextButton")
+floatBtnMain.Size = UDim2.new(0.8,0,0,40)
+floatBtnMain.Position = UDim2.new(0.1,0,0.76,0)
+floatBtnMain.Text = "Float"
+floatBtnMain.Font = Enum.Font.SourceSansBold
+floatBtnMain.TextSize = 20
+floatBtnMain.BackgroundColor3 = Color3.fromRGB(0,170,255)
+floatBtnMain.TextColor3 = Color3.fromRGB(255,255,255)
+floatBtnMain.Parent = selectFrame
+
+local infJumpBtn = Instance.new("TextButton")
+infJumpBtn.Size = UDim2.new(0.8,0,0,40)
+infJumpBtn.Position = UDim2.new(0.1,0,0.93,0)
+infJumpBtn.Text = "Infinite Jump"
+infJumpBtn.Font = Enum.Font.SourceSansBold
+infJumpBtn.TextSize = 20
+infJumpBtn.BackgroundColor3 = Color3.fromRGB(255,170,0)
+infJumpBtn.TextColor3 = Color3.fromRGB(255,255,255)
+infJumpBtn.Parent = selectFrame
+
 --================= ربط الأزرار =================--
 v1Btn.MouseButton1Click:Connect(createV1)
 v2Btn.MouseButton1Click:Connect(createV2)
 espBtn.MouseButton1Click:Connect(function()
 	enableESP()
-	espBtn:Destroy() -- 🔥 حذف زر الكشف نهائياً بعد التفعيل
+	espBtn:Destroy()
+end)
+floatBtnMain.MouseButton1Click:Connect(function()
+	createFloatGUI()
+	floatBtnMain:Destroy()
+end)
+infJumpBtn.MouseButton1Click:Connect(function()
+	enableInfiniteJump()
+	infJumpBtn:Destroy()
 end)
