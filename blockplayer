@@ -1,0 +1,169 @@
+--===[ إعدادات أساسية ]===--
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = Players.LocalPlayer
+
+--===[ GUI رئيسي ]===--
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PlayerBlockUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- زر علوي صغير
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0,130,0,35)
+toggleButton.Position = UDim2.new(0.5,-65,0,10)
+toggleButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
+toggleButton.Text = "PlayerBlock"
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 20
+toggleButton.Parent = screenGui
+toggleButton.Active = true
+toggleButton.Draggable = true
+
+-- رينبو للأسم
+task.spawn(function()
+	while task.wait() do
+		toggleButton.TextColor3 = Color3.fromHSV(tick() % 5 / 5,1,1)
+	end
+end)
+
+-- الإطار الرئيسي أصغر
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0,300,0,300)
+mainFrame.Position = UDim2.new(0.5,-150,0.5,-150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+mainFrame.Visible = false
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- عنوان
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,35)
+title.BackgroundColor3 = Color3.fromRGB(40,40,40)
+title.Text = "SZ STORE HUB"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 22
+title.Parent = mainFrame
+
+-- رينبو للعنوان
+task.spawn(function()
+	while task.wait() do
+		title.TextColor3 = Color3.fromHSV(tick() % 5 / 5,1,1)
+	end
+end)
+
+-- إطار قائمة اللاعبين
+local playerList = Instance.new("ScrollingFrame")
+playerList.Size = UDim2.new(1,-10,1,-60) -- مساحة أكبر للأسماء
+playerList.Position = UDim2.new(0,5,0,35)
+playerList.BackgroundTransparency = 1
+playerList.ScrollBarThickness = 5
+playerList.CanvasSize = UDim2.new(0,0,0,0)
+playerList.Parent = mainFrame
+
+local UIList = Instance.new("UIListLayout")
+UIList.Parent = playerList
+UIList.Padding = UDim.new(0,4)
+
+--===[ دالة صف اللاعب ]===--
+local function createPlayerEntry(plr)
+	local entry = Instance.new("Frame")
+	entry.Size = UDim2.new(1,-5,0,40)
+	entry.BackgroundColor3 = Color3.fromRGB(50,50,50)
+	entry.BorderSizePixel = 0
+	entry.LayoutOrder = plr.UserId
+
+	-- صورة
+	local thumb = Instance.new("ImageLabel")
+	thumb.Size = UDim2.new(0,30,0,30)
+	thumb.Position = UDim2.new(0,5,0.5,-15)
+	thumb.BackgroundTransparency = 1
+	thumb.Parent = entry
+
+	task.spawn(function()
+		local content, ready = Players:GetUserThumbnailAsync(plr.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+		if ready then thumb.Image = content end
+	end)
+
+	-- اسم
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Size = UDim2.new(0.55,0,1,0)
+	nameLabel.Position = UDim2.new(0,40,0,0)
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.Text = plr.DisplayName
+	nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+	nameLabel.Font = Enum.Font.SourceSans
+	nameLabel.TextSize = 16
+	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+	nameLabel.Parent = entry
+
+	-- زر Block
+	local blockBtn = Instance.new("TextButton")
+	blockBtn.Size = UDim2.new(0,60,0,25)
+	blockBtn.Position = UDim2.new(1,-70,0.5,-12)
+	blockBtn.BackgroundColor3 = Color3.fromRGB(200,50,50)
+	blockBtn.Text = "Block"
+	blockBtn.TextColor3 = Color3.fromRGB(255,255,255)
+	blockBtn.Font = Enum.Font.SourceSansBold
+	blockBtn.TextSize = 16
+	blockBtn.Parent = entry
+
+	blockBtn.MouseButton1Click:Connect(function()
+		StarterGui:SetCore("PromptBlockPlayer", plr) -- ✅ يفتح نافذة الحظر الرسمية
+	end)
+
+	entry.Parent = playerList
+end
+
+--===[ تحديث القائمة ]===--
+local function refreshList()
+	for _,child in pairs(playerList:GetChildren()) do
+		if child:IsA("Frame") then child:Destroy() end
+	end
+	for _,p in ipairs(Players:GetPlayers()) do
+		if p ~= LocalPlayer then
+			createPlayerEntry(p)
+		end
+	end
+	playerList.CanvasSize = UDim2.new(0,0,0,#Players:GetPlayers()*44)
+end
+
+Players.PlayerAdded:Connect(refreshList)
+Players.PlayerRemoving:Connect(refreshList)
+refreshList()
+
+toggleButton.MouseButton1Click:Connect(function()
+	mainFrame.Visible = not mainFrame.Visible
+end)
+
+--===[ معلومات اللاعب المحلي (أسفل يسار) ]===--
+local bottomFrame = Instance.new("Frame")
+bottomFrame.Size = UDim2.new(0,140,0,45)
+bottomFrame.Position = UDim2.new(0,5,1,-50)
+bottomFrame.BackgroundColor3 = Color3.fromRGB(40,40,40)
+bottomFrame.BorderSizePixel = 0
+bottomFrame.Parent = mainFrame
+
+local myPic = Instance.new("ImageLabel")
+myPic.Size = UDim2.new(0,35,0,35)
+myPic.Position = UDim2.new(0,5,0.5,-17)
+myPic.BackgroundTransparency = 1
+myPic.Parent = bottomFrame
+
+task.spawn(function()
+	local content, ready = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+	if ready then myPic.Image = content end
+end)
+
+local myName = Instance.new("TextLabel")
+myName.Size = UDim2.new(1,-45,1,0)
+myName.Position = UDim2.new(0,45,0,0)
+myName.BackgroundTransparency = 1
+myName.Text = LocalPlayer.DisplayName
+myName.TextColor3 = Color3.fromRGB(255,255,255)
+myName.Font = Enum.Font.SourceSans
+myName.TextSize = 16
+myName.TextXAlignment = Enum.TextXAlignment.Left
+myName.Parent = bottomFrame
