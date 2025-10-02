@@ -116,8 +116,7 @@ end
 -- 📂 القوائم
 local codesData = {
 	["Grow a garden"] = {
-		"RDCAward","BEANORLEAVE10","torigate","LUNARGLOW10","BIZZY25",
-		"BIZZYBEES25","BEES10","BUZZINGEVENT20","3BILLION","2BILLION"
+		"RDCAward","BEANORLEAVE10","torigate" -- ✅ فقط أول 3 أكواد
 	},
 	["Plants vs brainrot"] = {
 		"STACKS","frozen","based"
@@ -140,6 +139,7 @@ local codesData = {
 
 -- 🏠 القائمة الرئيسية
 function loadMainMenu()
+	scrollFrame:ClearAllChildren()
 	local y = 0
 	for name,_ in pairs(codesData) do
 		local btn = Instance.new("TextButton")
@@ -164,7 +164,32 @@ end
 -- أول مرة يظهر
 loadMainMenu()
 
--- فتح القائمة
+-- فتح / قفل القائمة
 mainButton.MouseButton1Click:Connect(function()
 	mainFrame.Visible = not mainFrame.Visible
 end)
+
+-- 📷 صورة اللاعب + اسمه (دائم بالزاوية تحت يسار)
+local playerInfoFrame = Instance.new("Frame")
+playerInfoFrame.Size = UDim2.new(0,180,0,60)
+playerInfoFrame.Position = UDim2.new(0,10,1,-70)
+playerInfoFrame.BackgroundTransparency = 1
+playerInfoFrame.Parent = mainFrame
+
+local thumb = Instance.new("ImageLabel")
+thumb.Size = UDim2.new(0,50,0,50)
+thumb.Position = UDim2.new(0,0,0,5)
+thumb.BackgroundTransparency = 1
+thumb.Image = Players:GetUserThumbnailAsync(LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+thumb.Parent = playerInfoFrame
+
+local nameLabel = Instance.new("TextLabel")
+nameLabel.Size = UDim2.new(1,-60,1,0)
+nameLabel.Position = UDim2.new(0,60,0,0)
+nameLabel.BackgroundTransparency = 1
+nameLabel.Text = LocalPlayer.Name
+nameLabel.TextColor3 = Color3.fromRGB(255,255,255)
+nameLabel.Font = Enum.Font.SourceSansBold
+nameLabel.TextSize = 20
+nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+nameLabel.Parent = playerInfoFrame
