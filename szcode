@@ -1,0 +1,170 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- 🌈 دالة لتلوين النص رينبو
+local function rainbowText(label)
+	task.spawn(function()
+		local hue = 0
+		while task.wait(0.1) do
+			hue = (hue + 0.01) % 1
+			label.TextColor3 = Color3.fromHSV(hue, 1, 1)
+		end
+	end)
+end
+
+-- 🌟 إنشاء شاشة GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SZ_CODE_HUB"
+screenGui.Parent = PlayerGui
+
+-- 🔘 زر فتح القوائم
+local mainButton = Instance.new("TextButton")
+mainButton.Size = UDim2.new(0,150,0,40)
+mainButton.Position = UDim2.new(0.5,-75,0,10)
+mainButton.BackgroundColor3 = Color3.fromRGB(0,200,0)
+mainButton.Text = "SZ CODE"
+mainButton.Font = Enum.Font.SourceSansBold
+mainButton.TextSize = 20
+mainButton.Parent = screenGui
+rainbowText(mainButton)
+
+-- 🪟 إطار القائمة
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0,400,0,300)
+mainFrame.Position = UDim2.new(0.5,-200,0.5,-150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+-- عنوان
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundColor3 = Color3.fromRGB(50,50,50)
+title.Text = "SZ STORE HUB"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 22
+title.Parent = mainFrame
+rainbowText(title)
+
+-- 📜 Scroll لحفظ الأكواد
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1,0,1,-40)
+scrollFrame.Position = UDim2.new(0,0,0,40)
+scrollFrame.CanvasSize = UDim2.new(0,0,0,0)
+scrollFrame.BackgroundTransparency = 1
+scrollFrame.Parent = mainFrame
+
+-- 🖊️ دالة نسخ
+local function copyText(text)
+	if setclipboard then
+		setclipboard(text)
+	elseif toclipboard then
+		toclipboard(text)
+	end
+end
+
+-- 🖊️ دالة تعبئة الأكواد
+local function loadCodes(codes)
+	scrollFrame:ClearAllChildren()
+	local y = 0
+	for i,code in ipairs(codes) do
+		local line = Instance.new("TextLabel")
+		line.Size = UDim2.new(0.7,0,0,30)
+		line.Position = UDim2.new(0,10,0,y)
+		line.Text = i..". "..code
+		line.TextColor3 = Color3.fromRGB(255,255,255)
+		line.BackgroundTransparency = 1
+		line.TextXAlignment = Enum.TextXAlignment.Left
+		line.Font = Enum.Font.SourceSansBold
+		line.TextSize = 18
+		line.Parent = scrollFrame
+
+		local copyBtn = Instance.new("TextButton")
+		copyBtn.Size = UDim2.new(0.2,0,0,25)
+		copyBtn.Position = UDim2.new(0.75,0,0,y+2)
+		copyBtn.BackgroundColor3 = Color3.fromRGB(255,120,0)
+		copyBtn.Text = "نسخ"
+		copyBtn.TextColor3 = Color3.fromRGB(255,255,255)
+		copyBtn.Parent = scrollFrame
+
+		copyBtn.MouseButton1Click:Connect(function()
+			copyText(code)
+		end)
+
+		y += 35
+	end
+	-- زر رجوع
+	local backBtn = Instance.new("TextButton")
+	backBtn.Size = UDim2.new(0.3,0,0,30)
+	backBtn.Position = UDim2.new(0,10,0,y+10)
+	backBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+	backBtn.Text = "رجوع"
+	backBtn.TextColor3 = Color3.fromRGB(255,255,255)
+	backBtn.Parent = scrollFrame
+
+	backBtn.MouseButton1Click:Connect(function()
+		scrollFrame:ClearAllChildren()
+		loadMainMenu()
+	end)
+
+	scrollFrame.CanvasSize = UDim2.new(0,0,0,y+50)
+end
+
+-- 📂 القوائم
+local codesData = {
+	["Grow a garden"] = {
+		"RDCAward","BEANORLEAVE10","torigate","LUNARGLOW10","BIZZY25",
+		"BIZZYBEES25","BEES10","BUZZINGEVENT20","3BILLION","2BILLION"
+	},
+	["Plants vs brainrot"] = {
+		"STACKS","frozen","based"
+	},
+	["Blox Fruits"] = {
+		"LIGHTNINGABUSE","1LOSTADMIN","ADMINFIGHT","GIFTING_HOURS","NOMOREHACK",
+		"BANEXPLOIT","EARN_FRUITS","FIGHT4FRUIT","NOEXPLOITER","NOOB2ADMIN",
+		"CODESLIDE","ADMINHACKED","ADMINDARES","fruitconcepts","krazydares",
+		"TRIPLEABUSE","SEATROLLING","24NOADMIN","REWARDFUN","NEWTROLL",
+		"SECRET_ADMIN","KITT_RESET","CHANDLER","Sub2CaptainMaui","kittgaming",
+		"Sub2Fer999","Enyu_is_Pro","Magicbus","JCWK","Starcodeheo","Bluxxy",
+		"fudd10_v2","SUB2GAMERROBOT_EXP1","SUB2GAMERROBOT_RESET1","Sub2UncleKizaru",
+		"Axiore","Sub2Daigrock","Bignews","Sub2NoobMaster123","StrawHatMaine",
+		"TantaiGaming","TheGreatAce","Sub2OfficialNoobie"
+	},
+	["99 Nights in the Forest"] = {
+		"afterparty"
+	}
+}
+
+-- 🏠 القائمة الرئيسية
+function loadMainMenu()
+	local y = 0
+	for name,_ in pairs(codesData) do
+		local btn = Instance.new("TextButton")
+		btn.Size = UDim2.new(0.6,0,0,40)
+		btn.Position = UDim2.new(0.2,0,0,y+20)
+		btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+		btn.Text = name
+		btn.TextColor3 = Color3.fromRGB(255,255,255)
+		btn.Font = Enum.Font.SourceSansBold
+		btn.TextSize = 18
+		btn.Parent = scrollFrame
+
+		btn.MouseButton1Click:Connect(function()
+			loadCodes(codesData[name])
+		end)
+
+		y += 50
+	end
+	scrollFrame.CanvasSize = UDim2.new(0,0,0,y+20)
+end
+
+-- أول مرة يظهر
+loadMainMenu()
+
+-- فتح القائمة
+mainButton.MouseButton1Click:Connect(function()
+	mainFrame.Visible = not mainFrame.Visible
+end)
