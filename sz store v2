@@ -1,14 +1,13 @@
 --================= إعدادات أساسية =================--
 local player = game.Players.LocalPlayer
 local PlayerGui = player:WaitForChild("PlayerGui")
-local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 -- حفظ التقييمات في جدول دائم
 local ratings = {}
 
---================= واجهة رئيسية =================--
+--================= واجهة رئيسية ===================
 local mainGui = Instance.new("ScreenGui")
 mainGui.Name = "SZHUB_GUI"
 mainGui.ResetOnSpawn = false
@@ -40,7 +39,7 @@ hubBtn.MouseButton1Click:Connect(function()
 	mainFrame.Visible = not mainFrame.Visible
 end)
 
---================= أزرار التنقل العلوية =================--
+--================= أزرار التنقل العلوية ===================
 local function createNavButton(name,posX)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0,70,0,25)
@@ -57,13 +56,13 @@ end
 local mainMenuBtn = createNavButton("الرئيسية",5)
 local updatesBtn = createNavButton("التحديثات",80)
 local rateBtn = createNavButton("ضع تقييمك",155)
-local devBtn = createNavButton("التقييمات",230) -- يظهر للمطور فقط
+local devBtn = createNavButton("التقييمات",230)
 
 if player.Name ~= "DEVSZ_STORE" then
 	devBtn.Visible = false
 end
 
---================= القوائم =================--
+--================= القوائم ===================
 local pages = {}
 
 -- القائمة الرئيسية
@@ -149,7 +148,6 @@ scroll.ScrollBarThickness = 6
 scroll.BackgroundTransparency = 1
 scroll.Parent = devPage
 
--- وظيفة تحديث التقييمات
 local function refreshRatings()
 	scroll:ClearAllChildren()
 	local y = 0
@@ -178,7 +176,6 @@ sendRateBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
---================= تغيير الصفحات =================--
 local function showPage(name)
 	for k,v in pairs(pages) do
 		v.Visible = (k == name)
@@ -190,7 +187,7 @@ updatesBtn.MouseButton1Click:Connect(function() showPage("التحديثات") e
 rateBtn.MouseButton1Click:Connect(function() showPage("ضع تقييمك") end)
 devBtn.MouseButton1Click:Connect(function() showPage("التقييمات") end)
 
---================= أزرار القائمة الرئيسية =================--
+--================= أزرار الرئيسية ===================
 local function createMainButton(text,posY)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(0.8,0,0,35)
@@ -204,94 +201,99 @@ local function createMainButton(text,posY)
 	return btn
 end
 
---================= نظام البارت =================--
-local function createPartMenu(title)
-	local gui = Instance.new("Frame")
-	gui.Size = UDim2.new(0,200,0,100)
-	gui.Position = UDim2.new(0.5,-100,0.5,-50)
-	gui.BackgroundColor3 = Color3.fromRGB(40,40,40)
-	gui.Visible = true
-	gui.Parent = mainGui
-	gui.Active = true
-	gui.Draggable = true
+-- Part Button مع قائمة رفع سلس
+local partBtn = createMainButton("Part",0.1)
+partBtn.MouseButton1Click:Connect(function()
+	partBtn:Destroy() -- يختفي نهائي
 
-	local toggleBtn = Instance.new("TextButton")
-	toggleBtn.Size = UDim2.new(0.8,0,0,40)
-	toggleBtn.Position = UDim2.new(0.1,0,0.3,0)
-	toggleBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-	toggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
-	toggleBtn.TextSize = 18
-	toggleBtn.Font = Enum.Font.SourceSansBold
-	toggleBtn.Text = "تشغيل "..title
-	toggleBtn.Parent = gui
+	local toolsGui = Instance.new("ScreenGui")
+	toolsGui.Name = "PartToolsGUI"
+	toolsGui.ResetOnSpawn = false
+	toolsGui.Parent = PlayerGui
+
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.new(0,200,0,100)
+	frame.Position = UDim2.new(0.5,-100,0.5,-50)
+	frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+	frame.BorderSizePixel = 0
+	frame.Parent = toolsGui
+	frame.Active = true
+	frame.Draggable = true
+
+	local liftBtn = Instance.new("TextButton")
+	liftBtn.Size = UDim2.new(0.8,0,0,40)
+	liftBtn.Position = UDim2.new(0.1,0,0.3,0)
+	liftBtn.BackgroundColor3 = Color3.fromRGB(0,200,120)
+	liftBtn.TextColor3 = Color3.fromRGB(255,255,255)
+	liftBtn.Font = Enum.Font.SourceSansBold
+	liftBtn.TextSize = 18
+	liftBtn.Text = "ابدأ الرفع"
+	liftBtn.Parent = frame
 
 	local building = false
 	local liftPart
 	local followConn
+	local riseConn
 
-	local function stopBuilding()
-		building = false
-		if followConn then followConn:Disconnect() end
-		if liftPart then liftPart:Destroy() end
-		toggleBtn.Text = "تشغيل "..title
-	end
-
-	local function startBuilding()
-		building = true
-		local char = player.Character or player.CharacterAdded:Wait()
-		local root = char:WaitForChild("HumanoidRootPart")
-		local humanoid = char:WaitForChild("Humanoid")
-
-		liftPart = Instance.new("Part")
-		liftPart.Size = Vector3.new(6,1,6)
-		liftPart.Anchored = true
-		liftPart.Color = Color3.fromRGB(100,255,100)
-		liftPart.Parent = workspace
-
-		followConn = RunService.Heartbeat:Connect(function()
-			if root and liftPart then
-				local footY = root.Position.Y - humanoid.HipHeight - (root.Size.Y/2) - 2
-				liftPart.Position = Vector3.new(root.Position.X, footY, root.Position.Z)
-			end
-		end)
-		toggleBtn.Text = "إيقاف "..title
-	end
-
-	toggleBtn.MouseButton1Click:Connect(function()
+	liftBtn.MouseButton1Click:Connect(function()
 		if building then
-			stopBuilding()
+			building = false
+			if followConn then followConn:Disconnect() end
+			if riseConn then riseConn:Disconnect() end
+			if liftPart then liftPart:Destroy() end
+			liftBtn.Text = "ابدأ الرفع"
 		else
-			startBuilding()
+			building = true
+			liftBtn.Text = "إيقاف الرفع"
+
+			local char = player.Character or player.CharacterAdded:Wait()
+			local root = char:WaitForChild("HumanoidRootPart")
+			local humanoid = char:WaitForChild("Humanoid")
+
+			liftPart = Instance.new("Part")
+			liftPart.Size = Vector3.new(6,1,6)
+			liftPart.Anchored = true
+			liftPart.Color = Color3.fromRGB(100,255,100)
+			liftPart.CanCollide = true
+			liftPart.Parent = workspace
+
+			-- تتبع موقع اللاعب
+			followConn = RunService.Heartbeat:Connect(function()
+				if root and liftPart then
+					local footY = root.Position.Y - humanoid.HipHeight - (root.Size.Y/2) + 0.5
+					liftPart.Position = Vector3.new(root.Position.X, footY, root.Position.Z)
+				end
+			end)
+
+			-- رفع سلس
+			local speed = 1.2
+			riseConn = RunService.Heartbeat:Connect(function(dt)
+				if liftPart and building then
+					liftPart.Position += Vector3.new(0, dt*speed, 0)
+				end
+			end)
 		end
 	end)
-end
-
--- زر V1 Part
-local v1Btn = createMainButton("SZ STORE V1",0.1)
-v1Btn.MouseButton1Click:Connect(function()
-	v1Btn:Destroy()
-	createPartMenu("V1")
 end)
 
--- زر V2 Part
-local v2Btn = createMainButton("SZ STORE V2",0.25)
-v2Btn.MouseButton1Click:Connect(function()
-	v2Btn:Destroy()
-	createPartMenu("V2")
+-- X-Ray Button
+local xrayBtn = createMainButton("X-Ray",0.45)
+local xrayEnabled = false
+xrayBtn.MouseButton1Click:Connect(function()
+	xrayEnabled = not xrayEnabled
+	for _,obj in pairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") then
+			if xrayEnabled then
+				obj.LocalTransparencyModifier = 0.5
+			else
+				obj.LocalTransparencyModifier = 0
+			end
+		end
+	end
 end)
 
--- زر ESP
-local espBtn = createMainButton("ESP Player",0.4)
-
--- زر Infinite Jump
-local infJumpBtn = createMainButton("Infinite Jump",0.55)
-
--- زر X-Ray
-local xrayBtn = createMainButton("X-Ray",0.7)
-
---================= وظائف الأزرار =================--
-
--- ESP
+-- ESP Player Button
+local espBtn = createMainButton("كشف أماكن",0.7)
 local function addESPToCharacter(char, name)
 	local billboard = Instance.new("BillboardGui")
 	billboard.Size = UDim2.new(0,100,0,20)
@@ -321,36 +323,3 @@ local function enableESP()
 end
 
 espBtn.MouseButton1Click:Connect(function() enableESP() espBtn:Destroy() end)
-
--- Infinite Jump
-local infiniteJumpActive = false
-infJumpBtn.MouseButton1Click:Connect(function()
-	infiniteJumpActive = true
-	UserInputService.JumpRequest:Connect(function()
-		if infiniteJumpActive then
-			local char = player.Character
-			if char then
-				local humanoid = char:FindFirstChildWhichIsA("Humanoid")
-				if humanoid then
-					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-				end
-			end
-		end
-	end)
-	infJumpBtn:Destroy()
-end)
-
--- X-Ray
-local xrayEnabled = false
-xrayBtn.MouseButton1Click:Connect(function()
-	xrayEnabled = not xrayEnabled
-	for _,obj in pairs(workspace:GetDescendants()) do
-		if obj:IsA("BasePart") and obj.Transparency < 1 then
-			if xrayEnabled then
-				obj.LocalTransparencyModifier = 0.5
-			else
-				obj.LocalTransparencyModifier = 0
-			end
-		end
-	end
-end)
