@@ -1,325 +1,278 @@
---================= إعدادات أساسية =================--
-local player = game.Players.LocalPlayer
-local PlayerGui = player:WaitForChild("PlayerGui")
+-- SZ STORE HUB GUI - Final + Screen Freeze 4 Seconds on Start
+-- by KING K (customized)
+
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
 
--- حفظ التقييمات في جدول دائم
-local ratings = {}
+-- ========== شاشة تجميد 4 ثواني ==========
+local freezeGui = Instance.new("ScreenGui")
+freezeGui.Name = "FreezeScreen"
+freezeGui.IgnoreGuiInset = true
+freezeGui.ResetOnSpawn = false
+freezeGui.Parent = PlayerGui
 
---================= واجهة رئيسية ===================
+local blackFrame = Instance.new("Frame")
+blackFrame.Size = UDim2.new(1,0,1,0)
+blackFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+blackFrame.Parent = freezeGui
+
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(1,0,1,0)
+loadingText.BackgroundTransparency = 1
+loadingText.TextColor3 = Color3.fromRGB(255,255,255)
+loadingText.Font = Enum.Font.SourceSansBold
+loadingText.TextSize = 28
+loadingText.Text = "جارٍ التحميل..."
+loadingText.Parent = freezeGui
+
+-- تعطيل التحكم بالكاميرا / الحركة أثناء التجميد
+local camera = workspace.CurrentCamera
+local camTypeBackup = camera.CameraType
+camera.CameraType = Enum.CameraType.Scriptable
+
+-- تأخير 4 ثواني
+task.wait(4)
+
+-- استرجاع الكاميرا والتحكم
+camera.CameraType = camTypeBackup
+freezeGui:Destroy()
+
+-- ========== GUI الرئيسي ==========
 local mainGui = Instance.new("ScreenGui")
-mainGui.Name = "SZHUB_GUI"
+mainGui.Name = "SZ_Store_Hub_GUI"
 mainGui.ResetOnSpawn = false
 mainGui.Parent = PlayerGui
 
--- زر SZHUB أعلى الشاشة
-local hubBtn = Instance.new("TextButton")
-hubBtn.Size = UDim2.new(0,140,0,40)
-hubBtn.Position = UDim2.new(0.5,-70,0,10)
-hubBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-hubBtn.Text = "SZHUB"
-hubBtn.Font = Enum.Font.SourceSansBold
-hubBtn.TextSize = 20
-hubBtn.TextColor3 = Color3.fromRGB(255,255,255)
-hubBtn.Parent = mainGui
+-- ---------- Small Icon ----------
+local smallBtn = Instance.new("ImageButton")
+smallBtn.Name = "SZIcon"
+smallBtn.Size = UDim2.new(0,50,0,50)
+smallBtn.Position = UDim2.new(0.9, -60, 0.08, 0)
+smallBtn.BackgroundTransparency = 1
+smallBtn.Active = true
+smallBtn.Draggable = true
+smallBtn.Image = "https://www.roblox.com/asset-thumbnail/image?assetId=75460804584415&width=420&height=420&format=png"
+smallBtn.Parent = mainGui
 
--- إطار القوائم
-local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0,240,0,320)
-mainFrame.Position = UDim2.new(0.5,-120,0.5,-160)
-mainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
-mainFrame.BorderSizePixel = 0
-mainFrame.Active = true
-mainFrame.Draggable = true
-mainFrame.Visible = false
-mainFrame.Parent = mainGui
+-- ---------- Menu ----------
+local menuFrame = Instance.new("Frame")
+menuFrame.Name = "SZ_Menu"
+menuFrame.Size = UDim2.new(0,220,0,190)
+menuFrame.Position = UDim2.new(0.55, -110, 0.2, 0)
+menuFrame.BackgroundColor3 = Color3.fromRGB(28,28,28)
+menuFrame.BorderSizePixel = 0
+menuFrame.Visible = false
+menuFrame.Active = true
+menuFrame.Draggable = true
+menuFrame.Parent = mainGui
 
-hubBtn.MouseButton1Click:Connect(function()
-	mainFrame.Visible = not mainFrame.Visible
-end)
+-- Title rainbow
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,-10,0,30)
+title.Position = UDim2.new(0,5,0,8)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+title.Text = "SZ STORE HUB"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextStrokeTransparency = 0.8
+title.Parent = menuFrame
 
---================= أزرار التنقل العلوية ===================
-local function createNavButton(name,posX)
+-- Buttons
+local function createButton(text, yPos)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0,70,0,25)
-	btn.Position = UDim2.new(0,posX,0,5)
-	btn.BackgroundColor3 = Color3.fromRGB(50,50,50)
-	btn.TextColor3 = Color3.fromRGB(255,255,255)
-	btn.TextSize = 14
-	btn.Font = Enum.Font.SourceSansBold
-	btn.Text = name
-	btn.Parent = mainFrame
-	return btn
-end
-
-local mainMenuBtn = createNavButton("الرئيسية",5)
-local updatesBtn = createNavButton("التحديثات",80)
-local rateBtn = createNavButton("ضع تقييمك",155)
-local devBtn = createNavButton("التقييمات",230)
-
-if player.Name ~= "DEVSZ_STORE" then
-	devBtn.Visible = false
-end
-
---================= القوائم ===================
-local pages = {}
-
--- القائمة الرئيسية
-local mainPage = Instance.new("Frame")
-mainPage.Size = UDim2.new(1,0,1,-35)
-mainPage.Position = UDim2.new(0,0,0,35)
-mainPage.BackgroundTransparency = 1
-mainPage.Parent = mainFrame
-pages["الرئيسية"] = mainPage
-
--- قائمة التحديثات
-local updatesPage = Instance.new("Frame")
-updatesPage.Size = UDim2.new(1,0,1,-35)
-updatesPage.Position = UDim2.new(0,0,0,35)
-updatesPage.BackgroundTransparency = 1
-updatesPage.Visible = false
-updatesPage.Parent = mainFrame
-pages["التحديثات"] = updatesPage
-
-local updatesLabel = Instance.new("TextLabel")
-updatesLabel.Size = UDim2.new(1,0,1,0)
-updatesLabel.BackgroundTransparency = 1
-updatesLabel.Text = "شكراً لك على استخدام السكربت\n\nالتحديثات:\n1- تم التعديل على أغلب الأشياء\n2- تمت إضافة X-Ray\n3- تم تغيير الاسم لـ SZHUB"
-updatesLabel.TextColor3 = Color3.fromRGB(255,255,255)
-updatesLabel.Font = Enum.Font.SourceSansBold
-updatesLabel.TextSize = 16
-updatesLabel.TextWrapped = true
-updatesLabel.Parent = updatesPage
-
--- قائمة ضع تقييمك
-local ratePage = Instance.new("Frame")
-ratePage.Size = UDim2.new(1,0,1,-35)
-ratePage.Position = UDim2.new(0,0,0,35)
-ratePage.BackgroundTransparency = 1
-ratePage.Visible = false
-ratePage.Parent = mainFrame
-pages["ضع تقييمك"] = ratePage
-
-local rateTitle = Instance.new("TextLabel")
-rateTitle.Size = UDim2.new(1,0,0,30)
-rateTitle.BackgroundTransparency = 1
-rateTitle.Text = "مكان التقييم"
-rateTitle.TextColor3 = Color3.fromRGB(255,255,0)
-rateTitle.Font = Enum.Font.SourceSansBold
-rateTitle.TextSize = 18
-rateTitle.Parent = ratePage
-
-local rateBox = Instance.new("TextBox")
-rateBox.Size = UDim2.new(0.9,0,0,40)
-rateBox.Position = UDim2.new(0.05,0,0.2,0)
-rateBox.PlaceholderText = "اكتب تقييمك هنا!"
-rateBox.Text = ""
-rateBox.ClearTextOnFocus = false
-rateBox.Font = Enum.Font.SourceSans
-rateBox.TextSize = 18
-rateBox.TextColor3 = Color3.fromRGB(0,0,0)
-rateBox.BackgroundColor3 = Color3.fromRGB(255,255,255)
-rateBox.Parent = ratePage
-
-local sendRateBtn = Instance.new("TextButton")
-sendRateBtn.Size = UDim2.new(0.4,0,0,30)
-sendRateBtn.Position = UDim2.new(0.3,0,0.5,0)
-sendRateBtn.Text = "إرسال"
-sendRateBtn.BackgroundColor3 = Color3.fromRGB(0,170,255)
-sendRateBtn.TextColor3 = Color3.fromRGB(255,255,255)
-sendRateBtn.Font = Enum.Font.SourceSansBold
-sendRateBtn.TextSize = 18
-sendRateBtn.Parent = ratePage
-
--- قائمة التقييمات (للمطور)
-local devPage = Instance.new("Frame")
-devPage.Size = UDim2.new(1,0,1,-35)
-devPage.Position = UDim2.new(0,0,0,35)
-devPage.BackgroundTransparency = 1
-devPage.Visible = false
-devPage.Parent = mainFrame
-pages["التقييمات"] = devPage
-
-local scroll = Instance.new("ScrollingFrame")
-scroll.Size = UDim2.new(1,0,1,0)
-scroll.CanvasSize = UDim2.new(0,0,0,0)
-scroll.ScrollBarThickness = 6
-scroll.BackgroundTransparency = 1
-scroll.Parent = devPage
-
-local function refreshRatings()
-	scroll:ClearAllChildren()
-	local y = 0
-	for i,text in ipairs(ratings) do
-		local lbl = Instance.new("TextLabel")
-		lbl.Size = UDim2.new(1,-10,0,30)
-		lbl.Position = UDim2.new(0,5,0,y)
-		lbl.BackgroundTransparency = 1
-		lbl.Text = i.."- "..text
-		lbl.TextColor3 = Color3.fromRGB(255,255,255)
-		lbl.TextSize = 16
-		lbl.Font = Enum.Font.SourceSansBold
-		lbl.TextXAlignment = Enum.TextXAlignment.Left
-		lbl.Parent = scroll
-		y = y + 35
-	end
-	scroll.CanvasSize = UDim2.new(0,0,0,y)
-end
-
-sendRateBtn.MouseButton1Click:Connect(function()
-	local txt = rateBox.Text
-	if txt ~= "" then
-		table.insert(ratings, player.Name..": "..txt)
-		rateBox.Text = ""
-		refreshRatings()
-	end
-end)
-
-local function showPage(name)
-	for k,v in pairs(pages) do
-		v.Visible = (k == name)
-	end
-end
-
-mainMenuBtn.MouseButton1Click:Connect(function() showPage("الرئيسية") end)
-updatesBtn.MouseButton1Click:Connect(function() showPage("التحديثات") end)
-rateBtn.MouseButton1Click:Connect(function() showPage("ضع تقييمك") end)
-devBtn.MouseButton1Click:Connect(function() showPage("التقييمات") end)
-
---================= أزرار الرئيسية ===================
-local function createMainButton(text,posY)
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0.8,0,0,35)
-	btn.Position = UDim2.new(0.1,0,posY,0)
+	btn.Size = UDim2.new(0.86,0,0,36)
+	btn.Position = UDim2.new(0.07,0,yPos,0)
 	btn.BackgroundColor3 = Color3.fromRGB(0,170,255)
 	btn.TextColor3 = Color3.fromRGB(255,255,255)
 	btn.Font = Enum.Font.SourceSansBold
 	btn.TextSize = 18
+	btn.AutoButtonColor = true
 	btn.Text = text
-	btn.Parent = mainPage
+	btn.Parent = menuFrame
 	return btn
 end
 
--- Part Button مع قائمة رفع سلس
-local partBtn = createMainButton("Part",0.1)
-partBtn.MouseButton1Click:Connect(function()
-	partBtn:Destroy() -- يختفي نهائي
+local partBtn = createButton("Part", 0.25)
+local xrayBtn = createButton("X-Ray", 0.52)
+local espBtn  = createButton("كشف أماكن", 0.79)
 
-	local toolsGui = Instance.new("ScreenGui")
-	toolsGui.Name = "PartToolsGUI"
-	toolsGui.ResetOnSpawn = false
-	toolsGui.Parent = PlayerGui
+-- ---------- Rainbow title effect ----------
+do
+	local t = 0
+	RunService.RenderStepped:Connect(function(dt)
+		t = t + dt * 0.12
+		local h = t % 1
+		title.TextColor3 = Color3.fromHSV(h, 0.95, 1)
+	end)
+end
 
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.new(0,200,0,100)
-	frame.Position = UDim2.new(0.5,-100,0.5,-50)
-	frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
-	frame.BorderSizePixel = 0
-	frame.Parent = toolsGui
-	frame.Active = true
-	frame.Draggable = true
+-- ---------- X-Ray ----------
+local xrayEnabled = false
+xrayBtn.MouseButton1Click:Connect(function()
+	xrayEnabled = not xrayEnabled
+	for _, obj in pairs(workspace:GetDescendants()) do
+		if obj:IsA("BasePart") then
+			obj.LocalTransparencyModifier = xrayEnabled and 0.5 or 0
+		end
+	end
+end)
 
-	local liftBtn = Instance.new("TextButton")
-	liftBtn.Size = UDim2.new(0.8,0,0,40)
-	liftBtn.Position = UDim2.new(0.1,0,0.3,0)
-	liftBtn.BackgroundColor3 = Color3.fromRGB(0,200,120)
-	liftBtn.TextColor3 = Color3.fromRGB(255,255,255)
-	liftBtn.Font = Enum.Font.SourceSansBold
-	liftBtn.TextSize = 18
-	liftBtn.Text = "ابدأ الرفع"
-	liftBtn.Parent = frame
+-- ---------- ESP ----------
+local espEnabled = false
+local espConnections = {}
+local function addESPToCharacter(char, name)
+	if not char then return end
+	if char:FindFirstChild("SZ_ESP_Billboard") then return end
+	local head = char:FindFirstChild("Head")
+	if not head then return end
 
-	local building = false
-	local liftPart
-	local followConn
-	local riseConn
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "SZ_ESP_Billboard"
+	billboard.Adornee = head
+	billboard.Size = UDim2.new(0,120,0,30)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = char
 
-	liftBtn.MouseButton1Click:Connect(function()
-		if building then
-			building = false
-			if followConn then followConn:Disconnect() end
-			if riseConn then riseConn:Disconnect() end
-			if liftPart then liftPart:Destroy() end
-			liftBtn.Text = "ابدأ الرفع"
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1,0,1,0)
+	label.BackgroundTransparency = 1
+	label.Text = name
+	label.TextColor3 = Color3.fromRGB(0,255,0)
+	label.Font = Enum.Font.SourceSansBold
+	label.TextScaled = true
+	label.Parent = billboard
+end
+
+local function enableESP()
+	if espEnabled then return end
+	espEnabled = true
+	for _, plr in pairs(Players:GetPlayers()) do
+		if plr ~= player then
+			if plr.Character then
+				addESPToCharacter(plr.Character, plr.Name)
+			end
+			espConnections[plr] = plr.CharacterAdded:Connect(function(char)
+				addESPToCharacter(char, plr.Name)
+			end)
+		end
+	end
+	espConnections["_playerAdded"] = Players.PlayerAdded:Connect(function(plr)
+		if plr ~= player then
+			espConnections[plr] = plr.CharacterAdded:Connect(function(char)
+				addESPToCharacter(char, plr.Name)
+			end)
+			if plr.Character then
+				addESPToCharacter(plr.Character, plr.Name)
+			end
+		end
+	end)
+end
+
+espBtn.MouseButton1Click:Connect(function()
+	espBtn:Destroy()
+	menuFrame.Visible = false
+	enableESP()
+end)
+
+-- ---------- Part Control ----------
+local liftPartInstance = nil
+local liftFollowConn = nil
+local liftRiseConn = nil
+local liftActive = false
+local LIFT_SPEED = 1.2
+
+local function createLiftControlGui()
+	local liftGui = Instance.new("ScreenGui")
+	liftGui.Name = "SZ_Lift_Control"
+	liftGui.ResetOnSpawn = false
+	liftGui.Parent = PlayerGui
+
+	local rect = Instance.new("Frame")
+	rect.Size = UDim2.new(0,220,0,90)
+	rect.Position = UDim2.new(0.5,-110,0.55,-45)
+	rect.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	rect.BorderSizePixel = 0
+	rect.Active = true
+	rect.Draggable = true
+	rect.Parent = liftGui
+
+	local lab = Instance.new("TextLabel")
+	lab.Size = UDim2.new(1,-10,0,24)
+	lab.Position = UDim2.new(0,5,0,6)
+	lab.BackgroundTransparency = 1
+	lab.Font = Enum.Font.SourceSansBold
+	lab.TextSize = 16
+	lab.Text = "تحكم Part"
+	lab.TextColor3 = Color3.fromRGB(255,255,255)
+	lab.Parent = rect
+
+	local toggleBtn = Instance.new("TextButton")
+	toggleBtn.Size = UDim2.new(0.86,0,0,40)
+	toggleBtn.Position = UDim2.new(0.07,0,0.45,0)
+	toggleBtn.Font = Enum.Font.SourceSansBold
+	toggleBtn.TextSize = 18
+	toggleBtn.Parent = rect
+
+	local function setStoppedVisual()
+		toggleBtn.Text = "بارت: إيقاف"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(200,40,40)
+	end
+	local function setRunningVisual()
+		toggleBtn.Text = "بارت: تشغيل"
+		toggleBtn.BackgroundColor3 = Color3.fromRGB(50,200,80)
+	end
+
+	setStoppedVisual()
+
+	toggleBtn.MouseButton1Click:Connect(function()
+		if liftActive then
+			liftActive = false
+			setStoppedVisual()
+			if liftFollowConn then liftFollowConn:Disconnect() end
+			if liftRiseConn then liftRiseConn:Disconnect() end
+			if liftPartInstance then liftPartInstance:Destroy() liftPartInstance = nil end
 		else
-			building = true
-			liftBtn.Text = "إيقاف الرفع"
+			liftActive = true
+			setRunningVisual()
 
 			local char = player.Character or player.CharacterAdded:Wait()
 			local root = char:WaitForChild("HumanoidRootPart")
-			local humanoid = char:WaitForChild("Humanoid")
+			local humanoid = char:FindFirstChildWhichIsA("Humanoid")
 
-			liftPart = Instance.new("Part")
-			liftPart.Size = Vector3.new(6,1,6)
-			liftPart.Anchored = true
-			liftPart.Color = Color3.fromRGB(100,255,100)
-			liftPart.CanCollide = true
-			liftPart.Parent = workspace
+			liftPartInstance = Instance.new("Part")
+			liftPartInstance.Size = Vector3.new(6,1,6)
+			liftPartInstance.Anchored = true
+			liftPartInstance.CanCollide = true
+			liftPartInstance.Color = Color3.fromRGB(100,255,100)
+			liftPartInstance.Parent = workspace
 
-			-- تتبع موقع اللاعب
-			followConn = RunService.Heartbeat:Connect(function()
-				if root and liftPart then
-					local footY = root.Position.Y - humanoid.HipHeight - (root.Size.Y/2) + 0.5
-					liftPart.Position = Vector3.new(root.Position.X, footY, root.Position.Z)
+			liftFollowConn = RunService.Heartbeat:Connect(function()
+				if root and liftPartInstance then
+					local footY = root.Position.Y - (humanoid and humanoid.HipHeight or 2) - (root.Size.Y/2) - 0.2
+					liftPartInstance.Position = Vector3.new(root.Position.X, footY, root.Position.Z)
 				end
 			end)
 
-			-- رفع سلس
-			local speed = 1.2
-			riseConn = RunService.Heartbeat:Connect(function(dt)
-				if liftPart and building then
-					liftPart.Position += Vector3.new(0, dt*speed, 0)
+			liftRiseConn = RunService.Heartbeat:Connect(function(dt)
+				if liftPartInstance and liftActive then
+					liftPartInstance.Position += Vector3.new(0, dt * LIFT_SPEED, 0)
 				end
 			end)
 		end
 	end)
-end)
-
--- X-Ray Button
-local xrayBtn = createMainButton("X-Ray",0.45)
-local xrayEnabled = false
-xrayBtn.MouseButton1Click:Connect(function()
-	xrayEnabled = not xrayEnabled
-	for _,obj in pairs(workspace:GetDescendants()) do
-		if obj:IsA("BasePart") then
-			if xrayEnabled then
-				obj.LocalTransparencyModifier = 0.5
-			else
-				obj.LocalTransparencyModifier = 0
-			end
-		end
-	end
-end)
-
--- ESP Player Button
-local espBtn = createMainButton("كشف أماكن",0.7)
-local function addESPToCharacter(char, name)
-	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.new(0,100,0,20)
-	billboard.AlwaysOnTop = true
-	billboard.Adornee = char:WaitForChild("Head")
-	billboard.Parent = char
-
-	local nameLabel = Instance.new("TextLabel")
-	nameLabel.Size = UDim2.new(1,0,1,0)
-	nameLabel.BackgroundTransparency = 1
-	nameLabel.Text = name
-	nameLabel.TextColor3 = Color3.fromRGB(0,255,0)
-	nameLabel.Font = Enum.Font.SourceSansBold
-	nameLabel.TextScaled = true
-	nameLabel.Parent = billboard
 end
 
-local function enableESP()
-	for _,plr in pairs(game.Players:GetPlayers()) do
-		if plr ~= player and plr.Character then
-			addESPToCharacter(plr.Character, plr.Name)
-		end
-		plr.CharacterAdded:Connect(function(char)
-			addESPToCharacter(char, plr.Name)
-		end)
-	end
-end
+partBtn.MouseButton1Click:Connect(function()
+	partBtn:Destroy()
+	menuFrame.Visible = false
+	createLiftControlGui()
+end)
 
-espBtn.MouseButton1Click:Connect(function() enableESP() espBtn:Destroy() end)
+-- ---------- Toggle menu ----------
+smallBtn.MouseButton1Click:Connect(function()
+	menuFrame.Visible = not menuFrame.Visible
+end)
